@@ -7,7 +7,7 @@ namespace PriorityQueue
     {
         static void Main(string[] args)
         {
-            PriorityQueue q = new PriorityQueue(new MaxComparer());
+            PriorityQueue<int> q = new PriorityQueue<int>(new MaxComparer());
             q.Push(1);
             q.Push(2);
             q.Push(3);
@@ -27,6 +27,14 @@ namespace PriorityQueue
         }
     }
 
+    class DefaultComparer : IComparer<IComparable>
+    {
+        public int Compare(IComparable x, IComparable y)
+        {
+            return x.GetHashCode() - y.GetHashCode();
+        }
+    }
+
     class MaxComparer : IComparer<int>
     {
         public int Compare(int x, int y)
@@ -43,45 +51,45 @@ namespace PriorityQueue
         }
     }
 
-    class PriorityQueue
+    class PriorityQueue<T> where T : IComparable
     {
-        private List<int> list = new List<int>();
-        IComparer<int> comparer;
+        private List<T> list = new List<T>();
+        IComparer<T> comparer;
 
-        public PriorityQueue(IComparer<int> cpr)
+        public PriorityQueue(IComparer<T> cpr)
         {
-            list = new List<int>();
+            list = new List<T>();
             comparer = cpr;
             if (comparer == null)
             {
-                comparer = new MaxComparer();
+                comparer = new DefaultComparer() as IComparer<T>;
             }
         }
 
-        public void Push(int n)
+        public void Push(T n)
         {
             list.Add(n);
             int index = list.Count - 1;
             while (GetParentIndex(index) >= 0 && comparer.Compare(list[index], list[GetParentIndex(index)]) > 0)
             {
-                int tmp = list[index];
+                T tmp = list[index];
                 list[index] = list[GetParentIndex(index)];
                 list[GetParentIndex(index)] = tmp;
                 index = GetParentIndex(index);
             }
         }
 
-        public int GetTopNode()
+        public T GetTopNode()
         {
             if (list.Count > 0) return list[0];
-            return -1;
+            throw new Exception("Empty queue");
         }
 
-        public int PopTopNode()
+        public T PopTopNode()
         {
-            if (IsEmpty()) return -1;
+            if (IsEmpty()) throw new Exception("Empty queue");
 
-            int top = list[0];
+            T top = list[0];
             list[0] = list[list.Count - 1];
             list.RemoveAt(list.Count - 1);
 
@@ -94,7 +102,7 @@ namespace PriorityQueue
                 {
                     if (comparer.Compare(list[leftChildIndex], list[index]) > 0)
                     {
-                        int tmp1 = list[index];
+                        T tmp1 = list[index];
                         list[index] = list[leftChildIndex];
                         list[leftChildIndex] = tmp1;
                     }
@@ -104,7 +112,7 @@ namespace PriorityQueue
                 int targetIndex = comparer.Compare(list[leftChildIndex], list[rightChildIndex]) > 0 ? leftChildIndex : rightChildIndex;
                 if (comparer.Compare(list[targetIndex], list[index]) > 0)
                 {
-                    int tmp2 = list[targetIndex];
+                    T tmp2 = list[targetIndex];
                     list[targetIndex] = list[index];
                     list[index] = tmp2;
 
@@ -153,9 +161,9 @@ namespace PriorityQueue
 
         public void LevelTraversal()
         {
-            foreach (int i in list)
+            foreach (T i in list)
             {
-                Console.Write(i);
+                Console.Write(i.ToString());
             }
             Console.WriteLine();
         }
